@@ -1,6 +1,10 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Briefcase, BarChart3, Settings, Target } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { LayoutDashboard, Briefcase, BarChart3, Settings, Target, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -9,8 +13,34 @@ const NAV = [
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
+function useUserEmail() {
+  const [email, setEmail] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+    const { data } = supabase.auth.onAuthStateChange((_e, session) => {
+      setEmail(session?.user?.email ?? null);
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+  return email;
+}
+
+function useSignOut() {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  return async () => {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+    navigate({ to: "/auth", replace: true });
+  };
+}
+
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const email = useUserEmail();
+  const signOut = useSignOut();
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:border-border md:bg-sidebar">
@@ -44,8 +74,19 @@ export function AppSidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-sidebar-border p-4 text-xs text-muted-foreground">
-        Built for students & new grads
+      <div className="border-t border-sidebar-border p-4 space-y-3">
+        {email && (
+          <div className="text-xs text-muted-foreground truncate" title={email}>
+            {email}
+          </div>
+        )}
+        <button
+          onClick={signOut}
+          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </button>
       </div>
     </aside>
   );

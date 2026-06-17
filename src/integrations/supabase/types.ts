@@ -30,6 +30,7 @@ export type Database = {
           salary: string
           status: Database["public"]["Enums"]["application_status"]
           updated_at: string
+          user_id: string
         }
         Insert: {
           applied_date?: string
@@ -46,6 +47,7 @@ export type Database = {
           salary?: string
           status?: Database["public"]["Enums"]["application_status"]
           updated_at?: string
+          user_id: string
         }
         Update: {
           applied_date?: string
@@ -62,6 +64,7 @@ export type Database = {
           salary?: string
           status?: Database["public"]["Enums"]["application_status"]
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

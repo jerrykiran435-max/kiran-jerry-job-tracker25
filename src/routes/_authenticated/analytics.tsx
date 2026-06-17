@@ -7,7 +7,7 @@ import {
 import { useApplications } from "@/hooks/use-applications";
 import { STATUSES, type Status } from "@/lib/types";
 
-export const Route = createFileRoute("/analytics")({
+export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
     meta: [
       { title: "Analytics — TrackPath" },

@@ -8,6 +8,12 @@ import {
 
 const THEME_KEY = "jat.theme";
 
+async function requireUserId(): Promise<string> {
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) throw new Error("Not signed in");
+  return data.user.id;
+}
+
 export async function fetchApplications(): Promise<Application[]> {
   const { data, error } = await supabase
     .from("applications")
@@ -18,9 +24,10 @@ export async function fetchApplications(): Promise<Application[]> {
 }
 
 export async function createApplication(app: Omit<Application, "id">): Promise<Application> {
+  const user_id = await requireUserId();
   const { data, error } = await supabase
     .from("applications")
-    .insert(appToRow(app))
+    .insert({ ...appToRow(app), user_id })
     .select()
     .single();
   if (error) throw error;
@@ -44,16 +51,20 @@ export async function deleteApplication(id: string): Promise<void> {
 }
 
 export async function deleteAllApplications(): Promise<void> {
+  const user_id = await requireUserId();
   const { error } = await supabase
     .from("applications")
     .delete()
-    .not("id", "is", null);
+    .eq("user_id", user_id);
   if (error) throw error;
 }
 
 export async function bulkInsertApplications(apps: Omit<Application, "id">[]): Promise<void> {
   if (!apps.length) return;
-  const { error } = await supabase.from("applications").insert(apps.map(appToRow));
+  const user_id = await requireUserId();
+  const { error } = await supabase
+    .from("applications")
+    .insert(apps.map((a) => ({ ...appToRow(a), user_id })));
   if (error) throw error;
 }
 

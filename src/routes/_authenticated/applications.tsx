@@ -17,7 +17,7 @@ import {
 import { STATUSES, type Application, type Status } from "@/lib/types";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/applications")({
+export const Route = createFileRoute("/_authenticated/applications")({
   head: () => ({
     meta: [
       { title: "Applications — TrackPath" },
