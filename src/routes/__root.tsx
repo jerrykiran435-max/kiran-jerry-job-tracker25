@@ -112,17 +112,14 @@ function RootComponent() {
   }, []);
 
   useEffect(() => {
-    import("@/integrations/supabase/client").then(({ supabase }) => {
-      supabase.auth.onAuthStateChange((event) => {
-        if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
-          if (event !== "SIGNED_OUT") {
-            // trigger refetch of user data
-            // queryClient cache invalidation
-          }
-        }
-      });
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      if (event !== "SIGNED_OUT") {
+        queryClient.invalidateQueries();
+      }
     });
-  }, []);
+    return () => data.subscription.unsubscribe();
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
