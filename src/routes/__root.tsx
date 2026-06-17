@@ -11,7 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { AppSidebar, MobileNav } from "@/components/app-sidebar";
+
 import { Toaster } from "@/components/ui/sonner";
 import { applyInitialTheme } from "@/lib/storage";
 
@@ -111,16 +111,23 @@ function RootComponent() {
     applyInitialTheme();
   }, []);
 
+  useEffect(() => {
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase.auth.onAuthStateChange((event) => {
+        if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+          if (event !== "SIGNED_OUT") {
+            // trigger refetch of user data
+            // queryClient cache invalidation
+          }
+        }
+      });
+    });
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen bg-background">
-        <AppSidebar />
-        <main className="flex-1 overflow-x-hidden pb-16 md:pb-0">
-          <Outlet />
-        </main>
-        <MobileNav />
-        <Toaster richColors position="top-right" />
-      </div>
+      <Outlet />
+      <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );
 }
