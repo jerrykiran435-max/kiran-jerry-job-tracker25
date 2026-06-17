@@ -68,20 +68,25 @@ export async function bulkInsertApplications(apps: Omit<Application, "id">[]): P
   if (error) throw error;
 }
 
-// Theme (local-only)
+// Theme (local-only) — dark is the default for the aurora-glass aesthetic
 export function getTheme(): "light" | "dark" {
-  if (typeof window === "undefined") return "light";
-  return (localStorage.getItem(THEME_KEY) as "light" | "dark") || "light";
+  if (typeof window === "undefined") return "dark";
+  return (localStorage.getItem(THEME_KEY) as "light" | "dark") || "dark";
 }
 
 export function setTheme(t: "light" | "dark") {
   localStorage.setItem(THEME_KEY, t);
-  document.documentElement.classList.toggle("dark", t === "dark");
+  const root = document.documentElement;
+  root.classList.toggle("dark", t === "dark");
+  root.classList.toggle("light", t === "light");
 }
 
 export function applyInitialTheme() {
   if (typeof window === "undefined") return;
-  document.documentElement.classList.toggle("dark", getTheme() === "dark");
+  const t = getTheme();
+  const root = document.documentElement;
+  root.classList.toggle("dark", t === "dark");
+  root.classList.toggle("light", t === "light");
 }
 
 // CSV

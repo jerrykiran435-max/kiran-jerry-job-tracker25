@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Briefcase, BarChart3, Settings, Target, LogOut } from "lucide-react";
+import { LayoutDashboard, Briefcase, BarChart3, Settings, Target, LogOut, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,50 +43,65 @@ export function AppSidebar() {
   const signOut = useSignOut();
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:border-border md:bg-sidebar">
-      <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Target className="h-5 w-5" />
-        </div>
-        <div>
-          <div className="text-sm font-semibold text-sidebar-foreground">TrackPath</div>
-          <div className="text-xs text-muted-foreground">Job Application Tracker</div>
-        </div>
-      </div>
-      <nav className="flex-1 space-y-1 px-3 py-4">
-        {NAV.map((item) => {
-          const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                active
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="border-t border-sidebar-border p-4 space-y-3">
-        {email && (
-          <div className="text-xs text-muted-foreground truncate" title={email}>
-            {email}
+    <aside className="hidden md:flex md:w-64 md:flex-col md:sticky md:top-0 md:h-screen">
+      <div className="m-4 flex flex-1 flex-col rounded-2xl glass overflow-hidden">
+        <div className="relative flex h-16 items-center gap-3 border-b border-white/5 px-5">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-xl gradient-brand blur-md opacity-70" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl gradient-brand text-white shadow-lg">
+              <Target className="h-5 w-5" />
+            </div>
           </div>
-        )}
-        <button
-          onClick={signOut}
-          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent"
-        >
-          <LogOut className="h-4 w-4" />
-          Sign out
-        </button>
+          <div>
+            <div className="text-sm font-display font-semibold tracking-tight">TrackPath</div>
+            <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <Sparkles className="h-3 w-3" /> Job Tracker
+            </div>
+          </div>
+        </div>
+        <nav className="flex-1 space-y-1 px-3 py-4">
+          {NAV.map((item) => {
+            const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={cn(
+                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                  active
+                    ? "text-white shadow-lg"
+                    : "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-white/5",
+                )}
+              >
+                {active && (
+                  <span className="absolute inset-0 rounded-xl gradient-brand opacity-90" />
+                )}
+                <Icon className={cn("relative h-4 w-4 transition-transform group-hover:scale-110", active && "drop-shadow")} />
+                <span className="relative">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="border-t border-white/5 p-4 space-y-3">
+          {email && (
+            <div className="flex items-center gap-2 rounded-lg bg-white/5 p-2.5">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full gradient-brand text-[11px] font-semibold text-white">
+                {email[0]?.toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1 text-xs text-sidebar-foreground/90 truncate" title={email}>
+                {email}
+              </div>
+            </div>
+          )}
+          <button
+            onClick={signOut}
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-white/5 hover:text-sidebar-foreground"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </button>
+        </div>
       </div>
     </aside>
   );
@@ -95,7 +110,7 @@ export function AppSidebar() {
 export function MobileNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t border-border bg-card md:hidden">
+    <nav className="fixed bottom-3 left-3 right-3 z-40 flex rounded-2xl glass-strong p-1.5 md:hidden">
       {NAV.map((item) => {
         const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
         const Icon = item.icon;
@@ -104,12 +119,13 @@ export function MobileNav() {
             key={item.to}
             to={item.to}
             className={cn(
-              "flex flex-1 flex-col items-center gap-1 py-2 text-xs",
-              active ? "text-primary" : "text-muted-foreground",
+              "relative flex flex-1 flex-col items-center gap-0.5 rounded-xl py-2 text-[10px] font-medium transition-all",
+              active ? "text-white" : "text-muted-foreground",
             )}
           >
-            <Icon className="h-5 w-5" />
-            {item.label}
+            {active && <span className="absolute inset-0 rounded-xl gradient-brand opacity-90" />}
+            <Icon className="relative h-4 w-4" />
+            <span className="relative">{item.label}</span>
           </Link>
         );
       })}
