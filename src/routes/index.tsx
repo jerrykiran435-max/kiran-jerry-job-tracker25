@@ -5,7 +5,7 @@ import { useApplications } from "@/hooks/use-applications";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { ApplicationDialog } from "@/components/application-dialog";
-import type { Status } from "@/lib/types";
+import type { Application, Status } from "@/lib/types";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Dashboard() {
-  const { apps, setApps } = useApplications();
+  const { apps, create } = useApplications();
 
   const stats = useMemo(() => {
     const by: Record<Status, number> = {
@@ -54,7 +54,11 @@ function Dashboard() {
         </div>
         <ApplicationDialog
           trigger={<Button><Plus className="mr-2 h-4 w-4" /> Add Application</Button>}
-          onSave={(app) => { setApps([app, ...apps]); toast.success("Application added"); }}
+          saving={create.isPending}
+          onSave={(app) => create.mutate(app as Omit<Application, "id">, {
+            onSuccess: () => toast.success("Application added"),
+            onError: (e) => toast.error(e.message),
+          })}
         />
       </header>
 

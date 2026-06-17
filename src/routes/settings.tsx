@@ -23,7 +23,7 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
-  const { apps, setApps } = useApplications();
+  const { apps, bulkInsert, clearAll } = useApplications();
   const [dark, setDark] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -49,8 +49,10 @@ function SettingsPage() {
     const text = await file.text();
     const imported = fromCSV(text);
     if (!imported.length) return toast.error("No rows found in CSV");
-    setApps([...imported, ...apps]);
-    toast.success(`Imported ${imported.length} applications`);
+    bulkInsert.mutate(imported, {
+      onSuccess: () => toast.success(`Imported ${imported.length} applications`),
+      onError: (e) => toast.error(e.message),
+    });
   };
 
   return (
@@ -99,15 +101,15 @@ function SettingsPage() {
                 e.target.value = "";
               }}
             />
-            <Button variant="outline" onClick={() => fileRef.current?.click()}>
-              <Upload className="mr-2 h-4 w-4" /> Import CSV
+            <Button variant="outline" disabled={bulkInsert.isPending} onClick={() => fileRef.current?.click()}>
+              <Upload className="mr-2 h-4 w-4" /> {bulkInsert.isPending ? "Importing..." : "Import CSV"}
             </Button>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
             <div>
               <div className="font-medium text-foreground">Clear all data</div>
-              <div className="text-sm text-muted-foreground">Delete every application stored in your browser.</div>
+              <div className="text-sm text-muted-foreground">Delete every application stored in the database.</div>
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -120,7 +122,10 @@ function SettingsPage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => { setApps([]); toast.success("All data cleared"); }}>
+                  <AlertDialogAction onClick={() => clearAll.mutate(undefined, {
+                    onSuccess: () => toast.success("All data cleared"),
+                    onError: (e) => toast.error(e.message),
+                  })}>
                     Clear all
                   </AlertDialogAction>
                 </AlertDialogFooter>

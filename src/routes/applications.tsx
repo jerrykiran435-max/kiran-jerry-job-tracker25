@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Plus, Search, Pencil, Trash2, ExternalLink, ArrowUpDown } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, ExternalLink, ArrowUpDown, Loader2 } from "lucide-react";
 import { useApplications } from "@/hooks/use-applications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { STATUSES, type Status } from "@/lib/types";
+import { STATUSES, type Application, type Status } from "@/lib/types";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/applications")({
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/applications")({
 type SortKey = "date-desc" | "date-asc" | "company-asc" | "company-desc";
 
 function ApplicationsPage() {
-  const { apps, setApps } = useApplications();
+  const { apps, isLoading, create, update, remove } = useApplications();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [sort, setSort] = useState<SortKey>("date-desc");
@@ -64,7 +64,11 @@ function ApplicationsPage() {
         </div>
         <ApplicationDialog
           trigger={<Button><Plus className="mr-2 h-4 w-4" /> Add Application</Button>}
-          onSave={(app) => { setApps([app, ...apps]); toast.success("Application added"); }}
+          saving={create.isPending}
+          onSave={(app) => create.mutate(app as Omit<Application, "id">, {
+            onSuccess: () => toast.success("Application added"),
+            onError: (e) => toast.error(e.message),
+          })}
         />
       </header>
 
@@ -108,7 +112,12 @@ function ApplicationsPage() {
           <div className="col-span-2 text-right">Actions</div>
         </div>
         <div className="divide-y divide-border">
-          {filtered.length === 0 && (
+          {isLoading && (
+            <div className="flex items-center justify-center gap-2 p-10 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+            </div>
+          )}
+          {!isLoading && filtered.length === 0 && (
             <div className="p-10 text-center text-sm text-muted-foreground">No applications match your filters.</div>
           )}
           {filtered.map((a) => (
@@ -131,11 +140,14 @@ function ApplicationsPage() {
                 )}
                 <ApplicationDialog
                   initial={a}
+                  saving={update.isPending}
                   trigger={<Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>}
-                  onSave={(updated) => {
-                    setApps(apps.map((x) => (x.id === updated.id ? updated : x)));
-                    toast.success("Application updated");
-                  }}
+                  onSave={(updated) =>
+                    update.mutate({ ...(updated as Application), id: a.id }, {
+                      onSuccess: () => toast.success("Application updated"),
+                      onError: (e) => toast.error(e.message),
+                    })
+                  }
                 />
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -149,10 +161,12 @@ function ApplicationsPage() {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => {
-                          setApps(apps.filter((x) => x.id !== a.id));
-                          toast.success("Application deleted");
-                        }}
+                        onClick={() =>
+                          remove.mutate(a.id, {
+                            onSuccess: () => toast.success("Application deleted"),
+                            onError: (e) => toast.error(e.message),
+                          })
+                        }
                       >Delete</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
