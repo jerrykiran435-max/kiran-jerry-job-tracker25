@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          applied_date: string
+          company: string
+          created_at: string
+          id: string
+          interview_date: string | null
+          job_link: string
+          job_portal: string
+          job_title: string
+          location: string
+          notes: string
+          resume_version: string
+          salary: string
+          status: Database["public"]["Enums"]["application_status"]
+          updated_at: string
+        }
+        Insert: {
+          applied_date?: string
+          company: string
+          created_at?: string
+          id?: string
+          interview_date?: string | null
+          job_link?: string
+          job_portal?: string
+          job_title: string
+          location?: string
+          notes?: string
+          resume_version?: string
+          salary?: string
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+        }
+        Update: {
+          applied_date?: string
+          company?: string
+          created_at?: string
+          id?: string
+          interview_date?: string | null
+          job_link?: string
+          job_portal?: string
+          job_title?: string
+          location?: string
+          notes?: string
+          resume_version?: string
+          salary?: string
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +73,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      application_status:
+        | "Applied"
+        | "Assessment"
+        | "Interview"
+        | "HR Round"
+        | "Offer"
+        | "Rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +206,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      application_status: [
+        "Applied",
+        "Assessment",
+        "Interview",
+        "HR Round",
+        "Offer",
+        "Rejected",
+      ],
+    },
   },
 } as const
