@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 
 import { Toaster } from "@/components/ui/sonner";
 import { applyInitialTheme } from "@/lib/storage";
+import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
