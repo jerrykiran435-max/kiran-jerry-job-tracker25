@@ -1,25 +1,55 @@
-import { useEffect, useState } from "react";
-import { loadApplications, saveApplications } from "@/lib/storage";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  bulkInsertApplications,
+  createApplication,
+  deleteAllApplications,
+  deleteApplication,
+  fetchApplications,
+  updateApplication,
+} from "@/lib/storage";
 import type { Application } from "@/lib/types";
 
+const KEY = ["applications"] as const;
+
 export function useApplications() {
-  const [apps, setApps] = useState<Application[]>([]);
+  const qc = useQueryClient();
+  const query = useQuery({ queryKey: KEY, queryFn: fetchApplications });
 
-  useEffect(() => {
-    setApps(loadApplications());
-    const onUpdate = () => setApps(loadApplications());
-    window.addEventListener("jat:update", onUpdate);
-    window.addEventListener("storage", onUpdate);
-    return () => {
-      window.removeEventListener("jat:update", onUpdate);
-      window.removeEventListener("storage", onUpdate);
-    };
-  }, []);
+  const invalidate = () => qc.invalidateQueries({ queryKey: KEY });
 
-  const update = (next: Application[]) => {
-    setApps(next);
-    saveApplications(next);
+  const create = useMutation({
+    mutationFn: (app: Omit<Application, "id">) => createApplication(app),
+    onSuccess: invalidate,
+  });
+
+  const update = useMutation({
+    mutationFn: (app: Application) => updateApplication(app),
+    onSuccess: invalidate,
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: string) => deleteApplication(id),
+    onSuccess: invalidate,
+  });
+
+  const clearAll = useMutation({
+    mutationFn: () => deleteAllApplications(),
+    onSuccess: invalidate,
+  });
+
+  const bulkInsert = useMutation({
+    mutationFn: (apps: Omit<Application, "id">[]) => bulkInsertApplications(apps),
+    onSuccess: invalidate,
+  });
+
+  return {
+    apps: query.data ?? [],
+    isLoading: query.isLoading,
+    error: query.error,
+    create,
+    update,
+    remove,
+    clearAll,
+    bulkInsert,
   };
-
-  return { apps, setApps: update };
 }
