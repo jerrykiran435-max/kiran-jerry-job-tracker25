@@ -19,16 +19,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { STATUSES, type Application, type Status } from "@/lib/types";
-import { newId } from "@/lib/storage";
 
 interface Props {
   trigger: React.ReactNode;
   initial?: Application;
-  onSave: (app: Application) => void;
+  onSave: (app: Application | Omit<Application, "id">) => void;
+  saving?: boolean;
 }
 
-const empty = (): Application => ({
-  id: newId(),
+type FormState = Omit<Application, "id"> & { id?: string };
+
+const empty = (): FormState => ({
   company: "",
   jobTitle: "",
   location: "",
@@ -42,21 +43,21 @@ const empty = (): Application => ({
   notes: "",
 });
 
-export function ApplicationDialog({ trigger, initial, onSave }: Props) {
+export function ApplicationDialog({ trigger, initial, onSave, saving }: Props) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<Application>(initial ?? empty());
+  const [form, setForm] = useState<FormState>(initial ?? empty());
 
   useEffect(() => {
     if (open) setForm(initial ?? empty());
   }, [open, initial]);
 
-  const set = <K extends keyof Application>(k: K, v: Application[K]) =>
+  const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.company.trim() || !form.jobTitle.trim()) return;
-    onSave(form);
+    onSave(form as Application);
     setOpen(false);
   };
 
@@ -118,7 +119,7 @@ export function ApplicationDialog({ trigger, initial, onSave }: Props) {
           </div>
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
