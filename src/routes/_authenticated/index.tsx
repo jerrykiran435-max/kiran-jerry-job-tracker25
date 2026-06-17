@@ -8,7 +8,7 @@ import { ApplicationDialog } from "@/components/application-dialog";
 import type { Application, Status } from "@/lib/types";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Dashboard — TrackPath" },
